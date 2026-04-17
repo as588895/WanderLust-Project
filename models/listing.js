@@ -8,18 +8,18 @@ const listingSchema = new Schema ({
     // },
     title: String,
     description: String,
-    // image: {
-    //     type: String,
-    //     default: "https://www.pexels.com/search/sunset%20tree/",
-    //     set: (v) => 
-    //         v === "" 
-    //           ? "https://www.pexels.com/search/sunset%20tree/" 
-    //             : v,
-    // },
     image: {
-        filename: String,
-        url: String,
+        type: String,
+        default: "https://www.pexels.com/search/sunset%20tree/",
+        set: (v) => 
+            v === "" 
+              ? "https://www.pexels.com/search/sunset%20tree/" 
+                : v,
     },
+    // image: {
+    //     filename: String,
+    //     url: String,
+    // },
     price: Number,
     location: String,
     country: String,
