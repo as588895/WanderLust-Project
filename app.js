@@ -79,7 +79,11 @@ app.get("/listings", wrapAsync(async(req, res) => {
    //Create Route
    app.post("/listings", validateListing,
     wrapAsync(async(req, res, next) => {
-        const newListing = new Listing(req.body.listing);
+        req.body.listing.image = {
+            url: req.body.listing.image,
+            filename: "listingimage"
+        };
+        const newlisting = new Listing(req.body.listing);
         await newListing.save();
         res.redirect("/listings");
     
@@ -99,6 +103,9 @@ app.get("/listings", wrapAsync(async(req, res) => {
     await Listing.findByIdAndUpdate(id, {...req.body.listing });
     res.redirect(`/listings/${id}`);
 }));
+
+  
+
 
    //Delete route
    app.delete("/listings/:id", wrapAsync (async (req, res) => {
