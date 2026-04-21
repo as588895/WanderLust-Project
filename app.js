@@ -77,18 +77,12 @@ app.get("/listings", wrapAsync(async(req, res) => {
    }));
 
    //Create Route
-   app.post("/listings", validateListing,
-    wrapAsync(async(req, res, next) => {
-        req.body.listing.image = {
-            url: req.body.listing.image,
-            filename: "listingimage"
-        };
-        const newlisting = new Listing(req.body.listing);
-        await newListing.save();
-        res.redirect("/listings");
-    
-        })
-   );
+  app.post("/listings", validateListing, wrapAsync(async (req, res) => {
+    const newListing = new Listing(req.body.listing);
+    await newListing.save();
+    res.redirect("/listings");
+
+}));
    
    //Edit Route
    app.get("/listings/:id/edit", wrapAsync(async(req, res) => {
