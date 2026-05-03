@@ -57,7 +57,7 @@ app.use(flash());             //flash used before routes app.use("/listings", li
                             //  app.use("/listings/:id/reviews", reviews);;
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
+passport.use(User.createStrategy());
 
 passport.serializeUser(User.serializeUser());  //user related session store called serialize
 passport.deserializeUser(User.deserializeUser());  //user related session unstore called deserialize
@@ -69,14 +69,18 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.get("/demouser", async(req, res) => {
-//     let fakeUser = new User({
-//         email: "student@gmail.com",
-//         username: "delta-student",
-//     });
-//     let registeredUser = await User.register(fakeUser, "helloworld");
-//     res.send(registeredUser);
-// });
+app.get("/demouser", async(req, res) => {
+    try {
+        let fakeUser = new User({
+            email: "student@gmail.com",
+            username: "delta-student",
+        });
+        let registeredUser = await User.register(fakeUser, "helloworld");
+        res.send(registeredUser);
+    } catch(e) {
+        res.send(e.message);
+    }
+});
 
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
