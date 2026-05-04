@@ -19,8 +19,9 @@ const userRouter = require("./routes/user.js");
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
 main()
-.then ( () => {
+.then ( async() => {
     console.log("connected to DB");
+    await createDemoUser();
 })
 .catch ( (err) => {
     console.log(err);
@@ -29,6 +30,22 @@ main()
 async function main() {
     await mongoose.connect(MONGO_URL);
 }
+
+async function createDemoUser() {
+    try {
+        const existingUser = await User.findOne({ username: "delta-student" });
+        if (!existingUser) {
+            const demoUser = new User({
+                email: "student@gmail.com",
+                username: "delta-student",
+            });
+            await User.register(demoUser, "helloworld");
+            console.log("Demo user 'delta-student' created.");
+        }
+    } catch (e) {
+        console.error("Failed to create demo user:", e);
+    }
+};
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -66,21 +83,26 @@ passport.deserializeUser(User.deserializeUser());  //user related session unstor
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
+    res.locals.currUser = req.user;
     next();
 });
 
-app.get("/demouser", async(req, res) => {
-    try {
-        let fakeUser = new User({
-            email: "student@gmail.com",
-            username: "delta-student",
-        });
-        let registeredUser = await User.register(fakeUser, "helloworld");
-        res.send(registeredUser);
-    } catch(e) {
-        res.send(e.message);
-    }
-});
+// app.get("/demouser", async(req, res) => {
+//     try {
+//         const existing = await User.findOne({ username: "delta-student" });
+//         if (existing) {
+//             return res.send(existing);
+//         }
+//         let fakeUser = new User({
+//             email: "student@gmail.com",
+//             username: "delta-student",
+//         });
+//         let registeredUser = await User.register(fakeUser, "helloworld");
+//         res.send(registeredUser);
+//     } catch(e) {
+//         res.send(e.message);
+//     }
+// });
 
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
