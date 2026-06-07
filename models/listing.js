@@ -1,33 +1,43 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const Review = require("./review.js");
+const { required } = require("joi");
 
 const listingSchema = new Schema ({
-    title: String,
+    title: {
+        type: String,
+        required: true,
+    },
     description: String,
     image: {
-        type: String,
-        default: "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg",
-        set: (v) => 
-            v === "" 
-              ? "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg"
-                : v
-    },
-    image: {
         filename: String,
-        url: String,
+        url: {
+            type: String,
+            default: "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg",
+            set: (v) => {
+                if (v === "" || v === undefined || v === null) {
+                    return "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg";
+                }
+                return v;
+            },
+        },
     },
     
 
     price: Number,
     location: String,
     country: String,
+   
     reviews :[
        {
         type : Schema.Types.ObjectId,
         ref : "Review",
        },
-    ]
+    ],
+     owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+    },
 });
 
 listingSchema.post("findOneAndDelete", async(listing) => {
