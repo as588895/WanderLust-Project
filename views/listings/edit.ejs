@@ -6,7 +6,7 @@
 
     <h3>Edit your Listing</h3>
 
-    <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation">
+    <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation" enctype="multipart/form-data">
       <div class="mb-3">
         <label for="title" class="form-label">Title</label>
         <input name="listing[title]" value="<%= listing.title %>" type="text" class="form-control" required/>
@@ -20,9 +20,13 @@
       </div>
 
       <div class="mb-3">
-        <label for="image" class="form-label">Image Link</label>
-        <input name="listing[image][url]" value="<%= listing.image.url %>" type="text" class="form-control">
-        <div class="form-text">Leave blank to keep or reset to the default image.</div>
+        Original Listing Image <br />
+        <img src="<%= listing.image.url %>" alt="Listing Image" class="img-thumbnail mb-2" style=" max-width: 200px;">
+      </div>
+
+      <div class="mb-3">
+        <label for="image" class="form-label">Upload New Image</label>
+        <input name="listing[img][url]"  type="file" class="form-control" />
       </div>
 
       <!-- For price and country -->

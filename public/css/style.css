@@ -115,3 +115,9 @@ text-decoration: underline;
    padding-left: 0;
    padding-right: 0;
 }
+
+/* Mapbox Styling */
+#map {
+    height: 400px; 
+    width: 80vh;
+}

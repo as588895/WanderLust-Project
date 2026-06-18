@@ -10,17 +10,19 @@ const listingSchema = new Schema ({
     },
     description: String,
     image: {
+        // filename: String,
+        // url: {
+        //     type: String,
+        //     default: "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg",
+        //     set: (v) => {
+        //         if (v === "" || v === undefined || v === null) {
+        //             return "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg";
+        //         }
+        //         return v;
+        //     },
+        // },
+        url: String,
         filename: String,
-        url: {
-            type: String,
-            default: "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg",
-            set: (v) => {
-                if (v === "" || v === undefined || v === null) {
-                    return "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg";
-                }
-                return v;
-            },
-        },
     },
     
 
@@ -38,6 +40,31 @@ const listingSchema = new Schema ({
         type: Schema.Types.ObjectId,
         ref: "User",
     },
+    geometry: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true,
+        },
+        coordinates: {
+            type: [Number],
+            required: true,
+        },
+    },
+    category: {
+    type: String,
+    enum: [
+      "Trending",
+      "Rooms",
+      "Iconic Cities",
+      "Mountains",
+      "Castles",
+      "Amazing Pools",
+      "Camping",
+      "Farms",
+      "Arctic"
+    ]
+},
 });
 
 listingSchema.post("findOneAndDelete", async(listing) => {

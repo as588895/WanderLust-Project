@@ -1,3 +1,8 @@
+if (process.env.NODE_ENV != "production") {
+    require("dotenv").config();
+}
+console.log("MAP_TOKEN =", process.env.MAP_TOKEN);
+
 const express = require("express");
 const app = express();
 const mongoose = require ("mongoose");
@@ -65,9 +70,9 @@ const sessionOptions = {
     },
 };
 
-app.get ("/", (req, res) => {
-    res.send("Hi, I am root");
-});
+// app.get ("/", (req, res) => {
+//     res.send("Hi, I am root");
+// });
 
 app.use(session(sessionOptions));
 app.use(flash());             //flash used before routes app.use("/listings", listings)
