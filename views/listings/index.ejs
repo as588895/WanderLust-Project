@@ -7,8 +7,9 @@
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
-        gap: 1.5rem;
+        gap: 1rem;
         scrollbar-width: none;
+        align-items: center;
       }
 
       #filters::-webkit-scrollbar {
@@ -19,9 +20,9 @@
       .filter {
         text-align: center;
         margin: 1rem;
-        margin-top: 0.5rem;
+        margin-top: 0.2rem;
         margin-bottom: 0rem;
-        min-width: 70px;
+        min-width: 2px;
         opacity: 0.7;
         font-size: 0.8rem;
       }
@@ -29,6 +30,18 @@
       .filter:hover {
         opacity: 1;
         cursor: pointer;
+      }
+
+      .tax-info{
+        display: none;
+      }
+
+      .tax-toggle {
+        border: 1px solid black;
+        border-radius: 0.8rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
       }
 
     </style>
@@ -116,6 +129,7 @@
                   <%= listing.title %>
                 </b> <br />
                 &#8377; <%= listing.price ? listing.price.toLocaleString("en-IN"): "N/A" %> / night
+                <i class="tax-info"> &nbsp; &nbsp;+18%GST</i>
               </p>
             </div>
           </div>
@@ -128,6 +142,14 @@
   <script>
     let taxSwitch = document.getElementById("switchCheckDefault");
     taxSwitch.addEventListener("click",() => {
-      console.log("checked");
-    })
+      let taxInfo = document.getElementsByClassName("tax-info");
+      for(info of taxInfo) {
+        if(info.style.display != "inline"){
+          info.style.display="inline";
+        }else {
+          info.style.display = "none";
+        }
+        
+      }
+    });
   </script>

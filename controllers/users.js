@@ -31,6 +31,7 @@ module.exports.signup = async(req, res, next) => {
 module.exports.login = async (req, res) => {
     req.flash("success", "Welcome back to WanderLust!");
     res.redirect(res.locals.redirectUrl || "/listings");
+
 };
 
 module.exports.logout = (req, res, next) => {
