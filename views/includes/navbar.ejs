@@ -20,6 +20,24 @@
     font-size: 1rem;
     display: inline;
   }
+  .auth-links{
+    display: flex;
+    align-items: center;
+}
+
+.auth-links .nav-link{
+    white-space: nowrap;
+    width: max-content;
+}
+  .logout-form {
+    margin: 0;
+  }
+  .logout-btn {
+    background: transparent;
+    border: 0;
+    padding: 0.5rem 0;
+    font-weight: 700;
+  }
 </style>
 
 <nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
@@ -35,20 +53,28 @@
       </div>
 
       <div class="navbar-nav ms-auto">
-        <form class="d-flex" role="search">
-          <input class="form-control me-2 search-input" type="search" placeholder="Search destinations"/>
+        <form class="d-flex" role="search" action="/listings" method="GET">
+          <input
+            class="form-control me-2 search-input"
+            type="search"
+            name="search"
+            value="<%= locals.searchQuery || '' %>"
+            placeholder="Search destinations"
+          />
           <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
         </form>
       </div>
 
-      <div class="navbar-nav ms-auto">
+      <div class="navbar-nav ms-auto auth-links">
         <a class="nav-link" href="/listings/new">Airbnb your home</a>
-        <% if(!locals.currUser) { %>
+        <% if(!currUser) { %>
           <a class="nav-link " href="/signup"><b>Sign up</b></a>
           <a class="nav-link" href="/login"><b>Log in</b></a>
           <% } %>
-            <% if(locals.currUser) { %>
-              <a class="nav-link" href="/logout"><b>Log out</b></a>
+            <% if(currUser) { %>
+              <form class="logout-form" action="/logout" method="POST">
+                <button class="nav-link logout-btn" type="submit">Log out</button>
+              </form>
               <% } %>
       </div>
 

@@ -3,9 +3,36 @@ const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken = process.env.MAP_TOKEN;
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 module.exports.index = async (req, res) => {
-    const allListings = await Listing.find({});
-    res.render("listings/index.ejs", { allListings });
+    const { search = "", category = "" } = req.query;
+    const trimmedSearch = search.trim();
+    const trimmedCategory = category.trim();
+    const query = {};
+
+    if (trimmedCategory) {
+        query.category = trimmedCategory;
+    }
+
+    if (trimmedSearch) {
+        const safeSearch = escapeRegex(trimmedSearch);
+        const regex = new RegExp(safeSearch, "i");
+        query.$or = [
+            { title: regex },
+            { location: regex },
+            { country: regex },
+            { category: regex },
+        ];
+    }
+
+    const allListings = await Listing.find(query);
+    res.set("Cache-Control", "no-store");
+    res.render("listings/index.ejs", {
+        allListings,
+        searchQuery: trimmedSearch,
+        activeCategory: trimmedCategory,
+    });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -88,9 +115,11 @@ module.exports.updateListing = async (req, res) => {
         { new: true }
     );
 
-    if (typeof req.file !== "undefined") {
-        let url = req.file.path;
-        let filename = req.file.filename;
+    const uploadedImage = req.files?.["listing[image][url]"]?.[0] || req.files?.["listing[img][url]"]?.[0];
+
+    if (typeof uploadedImage !== "undefined") {
+        let url = uploadedImage.path;
+        let filename = uploadedImage.filename;
         listing.image = { url, filename }; // Update the image field with the new uploaded file's URL and filename
         await listing.save();
     }

@@ -9,6 +9,10 @@ const listingController = require("../controllers/listing.js");
 const multer = require('multer');
 const { storage } = require("../cloudConfig.js"); 
 const upload = multer({ storage }); 
+const editImageUploadFields = upload.fields([
+    { name: "listing[image][url]", maxCount: 1 },
+    { name: "listing[img][url]", maxCount: 1 },
+]);
 
 const defaultImageUrl = "https://static.vecteezy.com/system/resources/thumbnails/054/880/166/small/thriving-tree-in-lush-green-environment-nature-conservation-and-protection-concept-free-photo.jpeg";
 
@@ -33,7 +37,7 @@ router.route("/")
 
 router.route("/:id")
 .get( wrapAsync(listingController.showListing))
-.put( isLoggedIn, isOwner,upload.single("listing[image][url]"), validateListing, wrapAsync(listingController.updateListing))
+.put( isLoggedIn, isOwner, editImageUploadFields, validateListing, wrapAsync(listingController.updateListing))
 .delete(isLoggedIn, isOwner, wrapAsync (listingController.destroyListing)
 );
    

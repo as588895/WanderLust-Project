@@ -12,12 +12,39 @@ router.route("/signup")
 
 router.route("/login")
 .get( saveRedirectUrl, userController.renderLoginForm)
-.post(
-    saveRedirectUrl, passport.authenticate("local", {
-    failureRedirect: "/login",
-    failureFlash: true,
-}), userController.login);
+.post(saveRedirectUrl, (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            req.flash("error", info?.message || "Invalid username or password");
+            return res.redirect("/login");
+        }
 
-router.get("/logout", userController.logout); 
+        req.session.regenerate((sessionErr) => {
+            if (sessionErr) {
+                return next(sessionErr);
+            }
+
+            req.logIn(user, (loginErr) => {
+                if (loginErr) {
+                    return next(loginErr);
+                }
+
+                req.flash("success", "Welcome back to StaySphere!");
+                const redirectUrl = res.locals.redirectUrl || "/listings";
+                req.session.save((saveErr) => {
+                    if (saveErr) {
+                        return next(saveErr);
+                    }
+                    return res.redirect(redirectUrl);
+                });
+            });
+        });
+    })(req, res, next);
+});
+
+router.post("/logout", userController.logout); 
 
 module.exports = router;

@@ -39,7 +39,12 @@ module.exports.logout = (req, res, next) => {
         if (err) {
             return next(err);
         }
-        req.flash("success", "Logged out successfully!");
-        res.redirect("/listings");
+        req.session.destroy((sessionErr) => {
+            if (sessionErr) {
+                return next(sessionErr);
+            }
+            res.clearCookie("connect.sid");
+            res.redirect("/listings");
+        });
     });
 };

@@ -57,6 +57,8 @@ async function createDemoUser() {
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+app.set("view cache", false);
+app.set("trust proxy", 1);
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
@@ -81,9 +83,9 @@ const sessionOptions = {
     saveUninitialized: false,
     cookie: {
         expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-        maxAge: 7 * 24 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-         secure: process.env.NODE_ENV === "production",
+        secure: "auto",
     },
 };
 
@@ -104,6 +106,7 @@ app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
     res.locals.currUser = req.user;
+    res.locals.currentUser = req.user;
     next();
 });
 
