@@ -32,7 +32,7 @@ router.route("/login")
                     return next(loginErr);
                 }
 
-                req.flash("success", "Welcome back to StaySphere!");
+                req.flash("success", "Welcome back to WanderNest!");
                 const redirectUrl = res.locals.redirectUrl || "/listings";
                 req.session.save((saveErr) => {
                     if (saveErr) {

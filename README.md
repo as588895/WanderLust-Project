@@ -1,1 +1,1 @@
-# WanderLust-Project
+# WanderNest – Travel & Accommodation Platform
