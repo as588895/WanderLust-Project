@@ -1,9 +1,15 @@
 const Listing = require("../models/listing.js");
+const User = require("../models/user.js");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken = process.env.MAP_TOKEN;
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const getWishlistIdSet = async (userId) => {
+    if (!userId) return new Set();
+    const user = await User.findById(userId).select("wishlist");
+    return new Set((user?.wishlist || []).map((id) => id.toString()));
+};
 
 module.exports.index = async (req, res) => {
     const { search = "", category = "" } = req.query;
@@ -27,11 +33,14 @@ module.exports.index = async (req, res) => {
     }
 
     const allListings = await Listing.find(query);
+    const wishlistIds = Array.from(await getWishlistIdSet(req.user?._id));
     res.set("Cache-Control", "no-store");
     res.render("listings/index.ejs", {
         allListings,
         searchQuery: trimmedSearch,
         activeCategory: trimmedCategory,
+        wishlistIds,
+        isWishlistPage: false,
     });
 };
 
@@ -48,11 +57,13 @@ module.exports.showListing = async (req, res) => {
         req.flash("error", "Listing you requested for does not exist!");
         return res.redirect("/listings");
     }
+    const wishlistIds = await getWishlistIdSet(req.user?._id);
     console.log(listing);
     //    res.render("listings/show.ejs", { listing });
     res.render("listings/show.ejs", {
         listing,
-        mapToken: process.env.MAP_TOKEN
+        mapToken: process.env.MAP_TOKEN,
+        isWishlisted: wishlistIds.has(listing._id.toString()),
     });
 };
 
@@ -133,4 +144,55 @@ module.exports.destroyListing = async (req, res) => {      //we can write delete
     console.log(deletedListing);
     req.flash("success", "Listing Deleted!");
     res.redirect("/listings");
+};
+
+module.exports.renderWishlist = async (req, res) => {
+    const user = await User.findById(req.user._id).populate("wishlist");
+    const allListings = (user?.wishlist || []).filter(Boolean);
+    const wishlistIds = allListings.map((listing) => listing._id.toString());
+
+    res.set("Cache-Control", "no-store");
+    res.render("listings/index.ejs", {
+        allListings,
+        searchQuery: "",
+        activeCategory: "",
+        wishlistIds,
+        isWishlistPage: true,
+    });
+};
+
+module.exports.addToWishlist = async (req, res) => {
+    const { id } = req.params;
+    const listingExists = await Listing.exists({ _id: id });
+
+    if (!listingExists) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+
+    const user = await User.findById(req.user._id).select("wishlist");
+    user.wishlist = user.wishlist || [];
+    const alreadyAdded = user.wishlist.some((listingId) => listingId.equals(id));
+
+    if (!alreadyAdded) {
+        user.wishlist.push(id);
+        await user.save();
+        req.flash("success", "Added to wishlist!");
+    }
+
+    const redirectBack = req.get("referer") || "/listings";
+    res.redirect(redirectBack);
+};
+
+module.exports.removeFromWishlist = async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findById(req.user._id).select("wishlist");
+    user.wishlist = user.wishlist || [];
+
+    user.wishlist = user.wishlist.filter((listingId) => !listingId.equals(id));
+    await user.save();
+
+    req.flash("success", "Removed from wishlist!");
+    const redirectBack = req.get("referer") || "/listings/wishlist";
+    res.redirect(redirectBack);
 };

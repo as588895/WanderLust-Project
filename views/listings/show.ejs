@@ -8,8 +8,19 @@
   // console.log("Listing:", listing);
 </script>
 <div class="row mt-3">
-  <div class="col-8 offset-3">
+  <div class="col-8 offset-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h3><%= listing.title %></h3>
+    <% if (currUser) { %>
+      <form
+        method="POST"
+        action="<%= isWishlisted ? `/listings/${listing._id}/wishlist?_method=DELETE` : `/listings/${listing._id}/wishlist` %>"
+      >
+        <button type="submit" class="wishlist-btn <%= isWishlisted ? 'active' : '' %>">
+          <i class="<%= isWishlisted ? 'fa-solid' : 'fa-regular' %> fa-heart"></i>
+          <span><%= isWishlisted ? "Wishlisted" : "Wishlist" %></span>
+        </button>
+      </form>
+    <% } %>
    </div>
 
     <div class="card col-6 offset-3 show-card listing-card">

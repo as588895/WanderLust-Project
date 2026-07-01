@@ -38,6 +38,10 @@
     padding: 0.5rem 0;
     font-weight: 700;
   }
+
+  .wishlist-nav i {
+    color: #fe424d;
+  }
 </style>
 
 <nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
@@ -72,6 +76,7 @@
           <a class="nav-link" href="/login"><b>Log in</b></a>
           <% } %>
             <% if(currUser) { %>
+              <a class="nav-link wishlist-nav" href="/listings/wishlist"><i class="fa-solid fa-heart"></i> Wishlist</a>
               <form class="logout-form" action="/logout" method="POST">
                 <button class="nav-link logout-btn" type="submit">Log out</button>
               </form>
