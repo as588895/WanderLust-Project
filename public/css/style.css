@@ -179,6 +179,36 @@ text-decoration: underline;
    padding-right: 0;
 }
 
+.book-now-btn {
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-weight: 600;
+}
+
+.confirm-listing-img {
+    height: 220px;
+    object-fit: cover;
+}
+
+.sticky-summary {
+    position: sticky;
+    top: 4.75rem;
+    margin-top: -4.2rem;
+}
+
+.confirm-pay-page {
+    padding-bottom: 2.5rem;
+}
+
+.booking-success-wrap .success-card {
+    max-width: 760px;
+}
+
+.success-icon {
+    font-size: 3rem;
+    color: #16a34a;
+}
+
 /* Mapbox Styling */
 #map {
     height: 400px;
@@ -205,6 +235,11 @@ text-decoration: underline;
     .show-card {
         margin-left: 0.5rem;
         margin-right: 0.5rem;
+    }
+
+    .sticky-summary {
+        position: static;
+        margin-top: 0;
     }
 }
 
@@ -254,5 +289,13 @@ text-decoration: underline;
         width: auto;
         height: auto;
         padding: 0.38rem 0.72rem;
+    }
+
+    .sticky-summary {
+        position: static;
+    }
+
+    .confirm-listing-img {
+        height: 180px;
     }
 }

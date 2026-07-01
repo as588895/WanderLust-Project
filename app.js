@@ -21,6 +21,7 @@ const User = require("./models/user.js");
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js"); 
+const bookingRouter = require("./routes/booking.js");
 const listingController = require("./controllers/listing.js");
 
 // const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
@@ -61,6 +62,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view cache", false);
 app.set("trust proxy", 1);
 app.use(express.urlencoded({extended: true}));
+app.use(express.json());
 app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
@@ -132,6 +134,7 @@ app.get("/", listingController.index);
 
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
+app.use("/listings", bookingRouter);
 app.use("/", userRouter);
 
 app.use((req, res, next) => {

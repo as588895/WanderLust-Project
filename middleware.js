@@ -7,6 +7,10 @@ const { listingSchema, reviewSchema} = require("./schema");
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()) {
         req.session.redirectUrl = req.originalUrl;
+        const wantsJson = req.xhr || req.get("accept")?.includes("application/json");
+        if (wantsJson) {
+            return res.status(401).json({ error: "Authentication required. Please log in again." });
+        }
         req.flash("error", "You must be signed in first!");
         return res.redirect("/login");
     }

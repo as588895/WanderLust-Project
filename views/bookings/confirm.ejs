@@ -1,0 +1,229 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="confirm-pay-page py-4">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <h2 class="mb-3">Confirm and pay</h2>
+      <p class="text-muted mb-4">Review your trip details and complete payment securely.</p>
+
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Your trip</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="checkIn" class="form-label">Check-in</label>
+              <input type="date" id="checkIn" class="form-control" value="<%= bookingInput.checkIn.toISOString().split('T')[0] %>" min="<%= new Date().toISOString().split('T')[0] %>">
+            </div>
+            <div class="col-md-6">
+              <label for="checkOut" class="form-label">Check-out</label>
+              <input type="date" id="checkOut" class="form-control" value="<%= bookingInput.checkOut.toISOString().split('T')[0] %>" min="<%= bookingInput.checkIn.toISOString().split('T')[0] %>">
+            </div>
+            <div class="col-md-6">
+              <label for="guests" class="form-label">Guests</label>
+              <input type="number" id="guests" class="form-control" value="<%= bookingInput.guests %>" min="1" max="20">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Payment method</h5>
+          <p class="small text-muted mb-3">Test mode enabled. You can pay using UPI, cards, netbanking, wallets, and more.</p>
+
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="paymentMethodAll" value="all" checked>
+              <label class="form-check-label" for="paymentMethodAll">
+                All payment options
+              </label>
+            </div>
+          </div>
+
+          <button id="pay-now-btn" class="btn btn-danger px-4">Pay now</button>
+        </div>
+      </div>
+
+      <form id="verify-payment-form" method="POST" action="/listings/<%= listing._id %>/book/confirm" class="d-none">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+        <input type="hidden" name="checkIn" id="form_checkIn">
+        <input type="hidden" name="checkOut" id="form_checkOut">
+        <input type="hidden" name="guests" id="form_guests">
+      </form>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0 sticky-summary">
+        <img src="<%= listing.image.url %>" class="card-img-top confirm-listing-img" alt="listing image">
+        <div class="card-body">
+          <h5 class="card-title"><%= listing.title %></h5>
+          <p class="text-muted mb-2"><%= listing.location %>, <%= listing.country %></p>
+
+          <hr>
+          <h6 class="mb-3">Price details</h6>
+          <div class="d-flex justify-content-between mb-2">
+            <span>INR <%= summary.nightlyPrice.toLocaleString("en-IN") %> x <%= summary.nights %> nights</span>
+            <span>INR <%= summary.subtotal.toLocaleString("en-IN") %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Taxes and fees</span>
+            <span>INR <%= summary.taxes.toLocaleString("en-IN") %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 text-success">
+            <span>Long-stay discount</span>
+            <span>- INR <%= summary.discount.toLocaleString("en-IN") %></span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total (INR)</span>
+            <span>INR <%= summary.total.toLocaleString("en-IN") %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const listingId = "<%= listing._id %>";
+  const razorpayKeyId = "<%= razorpayKeyId %>";
+
+  const checkInInput = document.getElementById("checkIn");
+  const checkOutInput = document.getElementById("checkOut");
+  const guestsInput = document.getElementById("guests");
+  const payButton = document.getElementById("pay-now-btn");
+
+  const verifyForm = document.getElementById("verify-payment-form");
+  const orderIdInput = document.getElementById("razorpay_order_id");
+  const paymentIdInput = document.getElementById("razorpay_payment_id");
+  const signatureInput = document.getElementById("razorpay_signature");
+  const formCheckIn = document.getElementById("form_checkIn");
+  const formCheckOut = document.getElementById("form_checkOut");
+  const formGuests = document.getElementById("form_guests");
+
+  const validateInputs = () => {
+    const checkIn = checkInInput.value;
+    const checkOut = checkOutInput.value;
+    const guests = Number(guestsInput.value || 1);
+
+    if (!checkIn || !checkOut) {
+      throw new Error("Please select check-in and check-out dates.");
+    }
+
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      throw new Error("Check-out must be after check-in.");
+    }
+
+    if (!Number.isInteger(guests) || guests < 1 || guests > 20) {
+      throw new Error("Guests must be between 1 and 20.");
+    }
+
+    return { checkIn, checkOut, guests };
+  };
+
+  payButton.addEventListener("click", async () => {
+    try {
+      if (!razorpayKeyId) {
+        throw new Error("Razorpay key is missing. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env");
+      }
+
+      const bookingData = validateInputs();
+      payButton.disabled = true;
+      payButton.textContent = "Preparing payment...";
+
+      const orderRes = await fetch(`/listings/${listingId}/book/create-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      const contentType = orderRes.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("Session expired or server error. Please reload and login again.");
+      }
+
+      const orderPayload = await orderRes.json();
+      if (!orderRes.ok) {
+        throw new Error(orderPayload.error || "Unable to create payment order.");
+      }
+
+      const options = {
+        key: orderPayload.key,
+        amount: orderPayload.amount,
+        currency: orderPayload.currency,
+        name: orderPayload.name,
+        description: orderPayload.description,
+        order_id: orderPayload.orderId,
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay using UPI",
+                instruments: [
+                  {
+                    method: "upi",
+                  },
+                ],
+              },
+              other: {
+                name: "Other payment methods",
+                instruments: [
+                  {
+                    method: "card",
+                  },
+                  {
+                    method: "netbanking",
+                  },
+                  {
+                    method: "wallet",
+                  },
+                  {
+                    method: "paylater",
+                  },
+                ],
+              },
+            },
+            sequence: ["block.upi", "block.other"],
+            preferences: {
+              show_default_blocks: true,
+            },
+          },
+        },
+        upi: {
+          flow: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "intent" : "collect",
+        },
+        handler: function (response) {
+          orderIdInput.value = response.razorpay_order_id;
+          paymentIdInput.value = response.razorpay_payment_id;
+          signatureInput.value = response.razorpay_signature;
+          formCheckIn.value = bookingData.checkIn;
+          formCheckOut.value = bookingData.checkOut;
+          formGuests.value = bookingData.guests;
+          verifyForm.submit();
+        },
+        theme: {
+          color: "#fe424d",
+        },
+        modal: {
+          ondismiss: function () {
+            payButton.disabled = false;
+            payButton.textContent = "Pay now";
+          },
+        },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      alert(err.message || "Payment initialization failed.");
+      payButton.disabled = false;
+      payButton.textContent = "Pay now";
+    }
+  });
+</script>
